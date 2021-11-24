@@ -34,6 +34,7 @@ class _CoreState extends State<Core> {
       // If the server did return a 200 OK response,
       // then parse the JSON.
       print('success');
+      print(response.body);
       return Album.fromJson(jsonDecode(response.body));
     } else {
       // If the server did not return a 200 OK response,
@@ -43,16 +44,19 @@ class _CoreState extends State<Core> {
   }
 
   Future<Cat> fetchCat() async {
-    const String url = "https://api.thecatapi.com/v1/images/search";
+    final url = Uri.parse('https://api.thecatapi.com/v1/images/search');
     final response = await http.get(
-        Uri.parse('https://api.thecatapi.com/v1/images/search'),
+        url,
         headers: {"x-api-key":"1a65013e-779b-409c-a466-3572ea6cd452"});
 
     if (response.statusCode == 200) {
       // If the server did return a 200 OK response,
       // then parse the JSON.
       print('cat success');
-      return Cat.fromJson(jsonDecode(response.body));
+      List<dynamic> list = json.decode(response.body);
+      Cat cat = Cat.fromJson(list[0]);
+      return cat;
+      //return Cat.fromJson(jsonDecode(response.body));
     } else {
       // If the server did not return a 200 OK response,
       // then throw an exception.
@@ -66,7 +70,7 @@ class _CoreState extends State<Core> {
       home: Scaffold(
           appBar: AppBar(
             backgroundColor: Colors.green,
-            title: const Text("A cool app"),
+            title: const Text("Flutter Cat"),
           ),
           floatingActionButton: FloatingActionButton(
             child: const Icon(Icons.add),
@@ -76,7 +80,8 @@ class _CoreState extends State<Core> {
               future: futureCat,
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
-                  return Text(snapshot.data!.width.toString());
+                  //return Text(snapshot.data!.url);
+                  return Image.network(snapshot.data!.url);
                 } else if (snapshot.hasError) {
                   return Text('${snapshot.error}');
                 }
@@ -87,7 +92,8 @@ class _CoreState extends State<Core> {
 }
 
 class Cat {
-  final breeds = <String>[];
+  //final breeds = <String>[];
+  List<dynamic> breeds;
   late final String id;
   late final String url;
   final int width;
@@ -95,7 +101,7 @@ class Cat {
 
   Cat(
       {
-      //required this.breeds,
+      required this.breeds,
       required this.id,
       required this.url,
       required this.width,
@@ -103,6 +109,7 @@ class Cat {
 
   factory Cat.fromJson(Map<String, dynamic> json) {
     return Cat(
+      breeds: json['breeds'],
       id: json['id'],
       url: json['url'],
       width: json['width'],
